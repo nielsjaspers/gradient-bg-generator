@@ -14,7 +14,8 @@
     --preview-area-bg: #eee;
     --header-text-color: #333;
     --accent-color: #007bff;
-    /* Accent color for selection */
+    --drag-over-bg: #e0eaff;
+    /* For drop zone indication */
 }
 
 body.dark-mode {
@@ -33,7 +34,8 @@ body.dark-mode {
     --preview-area-bg: #4a4a4a;
     --header-text-color: #e0e0e0;
     --accent-color: #008cff;
-    /* Accent color for selection in dark mode */
+    --drag-over-bg: #3a4a6a;
+    /* For drop zone indication in dark mode */
 }
 
 body {
@@ -68,6 +70,8 @@ body {
 .header-controls h1 {
     margin: 0;
     color: var(--header-text-color);
+    font-size: 1.8em;
+    /* Slightly larger title */
 }
 
 .theme-switcher {
@@ -90,6 +94,11 @@ h2 {
     color: var(--text-color);
 }
 
+h2 {
+    margin-bottom: 0.5em;
+    /* More space below H2 */
+}
+
 .main-content {
     display: flex;
     flex-direction: column;
@@ -110,8 +119,8 @@ h2 {
 
     .controls {
         flex: 1;
-        max-width: 400px;
-        /* Adjusted for potentially more controls */
+        max-width: 420px;
+        /* Slightly wider for more controls */
     }
 
     .preview-section {
@@ -124,11 +133,14 @@ fieldset {
     border-radius: 4px;
     padding: 15px;
     transition: border-color 0.3s;
+    margin-bottom: 10px;
+    /* Add some margin between fieldsets */
 }
 
 legend {
     font-weight: bold;
-    padding: 0 5px;
+    padding: 0 10px;
+    /* More padding for legend */
     color: var(--legend-text);
     transition: color 0.3s;
 }
@@ -137,6 +149,8 @@ label {
     display: block;
     margin-top: 10px;
     margin-bottom: 5px;
+    font-weight: 500;
+    /* Slightly bolder labels */
 }
 
 input[type="color"],
@@ -145,7 +159,8 @@ input[type="range"],
 input[type="text"],
 select,
 button {
-    padding: 8px;
+    padding: 10px;
+    /* Slightly more padding */
     margin-top: 5px;
     border-radius: 4px;
     border: 1px solid var(--input-border);
@@ -165,15 +180,19 @@ select {
 input[type="range"] {
     width: 100%;
     padding: 0;
+    /* Range inputs often need specific padding reset */
 }
 
-#gradient-angle-slider {
+#gradient-angle-slider,
+#blotchiness-slider,
+#grain-opacity {
     margin-top: 8px;
+    height: 20px;
+    /* Make sliders a bit taller */
 }
 
 input[type="color"] {
     width: 50px;
-    /* Slightly smaller to fit more */
     height: 35px;
     padding: 2px;
     vertical-align: middle;
@@ -181,29 +200,55 @@ input[type="color"] {
     border-style: solid;
     border-color: transparent;
     /* Default transparent border */
-    cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: grab;
+    /* Indicate draggable */
+    transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+
+input[type="color"]:active {
+    cursor: grabbing;
 }
 
 input[type="color"].color-picker-selected {
     border-color: var(--accent-color);
-    box-shadow: 0 0 6px var(--accent-color);
+    box-shadow: 0 0 8px var(--accent-color);
+    /* Enhanced shadow */
 }
 
+input[type="color"].dragging {
+    /* Style for the item being dragged */
+    opacity: 0.4;
+    border-style: dashed;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
 
-#color-inputs {
+.color-inputs-container {
+    /* Container for color pickers */
     display: flex;
     gap: 8px;
-    /* Reduced gap */
     flex-wrap: wrap;
     align-items: center;
     margin-bottom: 10px;
+    padding: 8px;
+    /* Padding to make it a better drop target */
+    border: 2px dashed transparent;
+    min-height: 50px;
+    /* Ensure it has some height even when empty */
+    border-radius: 4px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.color-inputs-container.drag-over {
+    /* Style when dragging over the container */
+    border-color: var(--accent-color);
+    background-color: var(--drag-over-bg);
 }
 
 .add-hex-group {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 15px;
+    /* More space */
     align-items: center;
 }
 
@@ -211,20 +256,16 @@ input[type="color"].color-picker-selected {
     flex-grow: 1;
 }
 
-#edit-selected-color-fieldset {
-    /* Styles for the new fieldset if needed, otherwise defaults are fine */
-}
-
 #edit-selected-color-fieldset input[type="text"] {
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
-
 
 button {
     background-color: var(--button-bg);
     color: var(--button-text);
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-weight: 500;
 }
 
 button:hover {
@@ -234,7 +275,8 @@ button:hover {
 button:disabled {
     background-color: var(--disabled-bg);
     color: var(--text-color);
-    opacity: 0.7;
+    opacity: 0.6;
+    /* Slightly more visible when disabled */
     cursor: not-allowed;
 }
 
@@ -266,6 +308,8 @@ button:disabled {
     font-size: 1.2em;
     background-color: #28a745;
     color: white;
+    margin-top: 20px;
+    /* Add some space above download button */
 }
 
 #download-btn:hover {
