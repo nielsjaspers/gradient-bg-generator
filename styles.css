@@ -13,6 +13,8 @@
     --disabled-bg: #ccc;
     --preview-area-bg: #eee;
     --header-text-color: #333;
+    --accent-color: #007bff;
+    /* Accent color for selection */
 }
 
 body.dark-mode {
@@ -30,6 +32,8 @@ body.dark-mode {
     --disabled-bg: #505050;
     --preview-area-bg: #4a4a4a;
     --header-text-color: #e0e0e0;
+    --accent-color: #008cff;
+    /* Accent color for selection in dark mode */
 }
 
 body {
@@ -48,7 +52,7 @@ body {
     background-color: var(--container-bg);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     width: 95%;
     max-width: 1200px;
     transition: background-color 0.3s;
@@ -80,7 +84,8 @@ body {
     cursor: pointer;
 }
 
-h1, h2 {
+h1,
+h2 {
     text-align: center;
     color: var(--text-color);
 }
@@ -102,10 +107,13 @@ h1, h2 {
     .main-content {
         flex-direction: row;
     }
+
     .controls {
         flex: 1;
         max-width: 400px;
+        /* Adjusted for potentially more controls */
     }
+
     .preview-section {
         flex: 2;
     }
@@ -148,13 +156,15 @@ button {
     transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
-input[type="number"], input[type="text"], select {
+input[type="number"],
+input[type="text"],
+select {
     width: 100%;
 }
 
 input[type="range"] {
     width: 100%;
-    padding: 0; /* Range inputs often need specific padding reset */
+    padding: 0;
 }
 
 #gradient-angle-slider {
@@ -162,16 +172,29 @@ input[type="range"] {
 }
 
 input[type="color"] {
-    width: 60px;
+    width: 50px;
+    /* Slightly smaller to fit more */
     height: 35px;
     padding: 2px;
     vertical-align: middle;
-    border-width: 2px; /* Make border more visible for color pickers */
+    border-width: 2px;
+    border-style: solid;
+    border-color: transparent;
+    /* Default transparent border */
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
+
+input[type="color"].color-picker-selected {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 6px var(--accent-color);
+}
+
 
 #color-inputs {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    /* Reduced gap */
     flex-wrap: wrap;
     align-items: center;
     margin-bottom: 10px;
@@ -188,6 +211,14 @@ input[type="color"] {
     flex-grow: 1;
 }
 
+#edit-selected-color-fieldset {
+    /* Styles for the new fieldset if needed, otherwise defaults are fine */
+}
+
+#edit-selected-color-fieldset input[type="text"] {
+    margin-bottom: 5px;
+}
+
 
 button {
     background-color: var(--button-bg);
@@ -202,7 +233,7 @@ button:hover {
 
 button:disabled {
     background-color: var(--disabled-bg);
-    color: var(--text-color); /* Ensure text is visible on disabled dark bg */
+    color: var(--text-color);
     opacity: 0.7;
     cursor: not-allowed;
 }
@@ -233,7 +264,7 @@ button:disabled {
     width: 100%;
     padding: 15px;
     font-size: 1.2em;
-    background-color: #28a745; /* Keep download distinct or theme it too */
+    background-color: #28a745;
     color: white;
 }
 

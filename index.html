@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gradient Background Generator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <div class="header-controls">
@@ -24,11 +26,21 @@
                         <!-- Color pickers will be added by JS -->
                     </div>
                     <button id="add-color-picker">Add Color Picker</button>
-                    <button id="remove-color-picker" disabled>Remove Last Picker</button>
+                    <button id="remove-selected-color" disabled>Remove Selected Color</button>
+                    <!-- Changed ID and text -->
+
                     <div class="add-hex-group">
-                        <input type="text" id="hex-color-input" placeholder="#RRGGBB">
+                        <input type="text" id="hex-color-input-add" placeholder="#RRGGBB (New Color)">
                         <button id="add-hex-color-button">Add by Hex</button>
                     </div>
+                </fieldset>
+
+                <fieldset id="edit-selected-color-fieldset" style="display: none;"> <!-- New Fieldset for Editing -->
+                    <legend>Edit Selected Color</legend>
+                    <label for="selected-color-hex-edit">Hex Value:</label>
+                    <input type="text" id="selected-color-hex-edit" placeholder="#RRGGBB">
+                    <button id="update-selected-color-button">Update Color</button>
+                    <span id="selected-color-id-display" style="font-size: 0.8em; margin-left: 10px;"></span>
                 </fieldset>
 
                 <fieldset>
@@ -41,7 +53,8 @@
                     <div id="linear-settings">
                         <label for="gradient-angle-number">Angle (degrees):</label>
                         <input type="number" id="gradient-angle-number" value="90" min="0" max="360">
-                        <input type="range" id="gradient-angle-slider" value="90" min="0" max="360" step="1" title="Adjust Angle">
+                        <input type="range" id="gradient-angle-slider" value="90" min="0" max="360" step="1"
+                            title="Adjust Angle">
                     </div>
                     <div id="radial-settings" style="display:none;">
                         <label for="radial-shape">Shape:</label>
@@ -88,4 +101,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>

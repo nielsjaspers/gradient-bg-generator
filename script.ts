@@ -1,15 +1,21 @@
 interface GradientColor {
     id: number;
     value: string;
+    domElement?: HTMLInputElement;
 }
 
 class GradientGenerator {
     private themeToggle: HTMLInputElement | null;
     private colorInputsContainer: HTMLElement | null;
     private addColorPickerButton: HTMLButtonElement | null;
-    private removeColorPickerButton: HTMLButtonElement | null;
-    private hexColorInput: HTMLInputElement | null;
+    private removeSelectedColorButton: HTMLButtonElement | null;
+    private hexColorInputAdd: HTMLInputElement | null;
     private addHexColorButton: HTMLButtonElement | null;
+
+    private editSelectedColorFieldset: HTMLElement | null;
+    private selectedColorHexEditInput: HTMLInputElement | null;
+    private updateSelectedColorButton: HTMLButtonElement | null;
+    private selectedColorIdDisplay: HTMLElement | null;
 
     private gradientTypeSelect: HTMLSelectElement | null;
     private linearSettingsDiv: HTMLElement | null;
@@ -32,21 +38,27 @@ class GradientGenerator {
 
     private colors: GradientColor[] = [];
     private nextColorId = 0;
+    private selectedColorId: number | null = null;
     private readonly MAX_COLORS = 10;
+    private readonly MIN_COLORS = 2;
     private isSwappingDimensions = false;
 
     constructor() {
         console.log('[GradientGenerator] Constructor called.');
 
-        // Fetch all elements first
         this.themeToggle = document.getElementById('theme-toggle') as HTMLInputElement | null;
         this.previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement | null;
 
         this.colorInputsContainer = document.getElementById('color-inputs') as HTMLElement | null;
         this.addColorPickerButton = document.getElementById('add-color-picker') as HTMLButtonElement | null;
-        this.removeColorPickerButton = document.getElementById('remove-color-picker') as HTMLButtonElement | null;
-        this.hexColorInput = document.getElementById('hex-color-input') as HTMLInputElement | null;
+        this.removeSelectedColorButton = document.getElementById('remove-selected-color') as HTMLButtonElement | null;
+        this.hexColorInputAdd = document.getElementById('hex-color-input-add') as HTMLInputElement | null;
         this.addHexColorButton = document.getElementById('add-hex-color-button') as HTMLButtonElement | null;
+
+        this.editSelectedColorFieldset = document.getElementById('edit-selected-color-fieldset') as HTMLElement | null;
+        this.selectedColorHexEditInput = document.getElementById('selected-color-hex-edit') as HTMLInputElement | null;
+        this.updateSelectedColorButton = document.getElementById('update-selected-color-button') as HTMLButtonElement | null;
+        this.selectedColorIdDisplay = document.getElementById('selected-color-id-display') as HTMLElement | null;
 
         this.gradientTypeSelect = document.getElementById('gradient-type') as HTMLSelectElement | null;
         this.linearSettingsDiv = document.getElementById('linear-settings') as HTMLElement | null;
@@ -64,13 +76,11 @@ class GradientGenerator {
         this.swapDimensionsButton = document.getElementById('swap-dimensions') as HTMLButtonElement | null;
         this.downloadButton = document.getElementById('download-btn') as HTMLButtonElement | null;
 
-        // Critical check for previewCanvas
         console.log('[GradientGenerator] Tried to get "preview-canvas":', this.previewCanvas);
         if (!this.previewCanvas) {
             console.error("[GradientGenerator] FATAL ERROR: HTMLCanvasElement with ID 'preview-canvas' not found.");
             alert("Critical Error: 'preview-canvas' is missing. App cannot start.");
-            this.previewCtx = null; // Ensure other props are nullified if we exit early
-            // (other properties are already null if getElementById failed)
+            this.previewCtx = null;
             return;
         }
 
@@ -79,40 +89,6 @@ class GradientGenerator {
         if (!this.previewCtx) {
             console.error("[GradientGenerator] Failed to get 2D context from canvas.");
             alert("Error: Canvas 2D context not supported. Gradient generation will not work.");
-        }
-
-        // Debug log for all potentially non-critical elements
-        console.log("[GradientGenerator Debug] Status of UI elements for warning check:");
-        console.log("  themeToggle:", this.themeToggle);
-        console.log("  colorInputsContainer:", this.colorInputsContainer);
-        console.log("  addColorPickerButton:", this.addColorPickerButton);
-        console.log("  removeColorPickerButton:", this.removeColorPickerButton);
-        console.log("  hexColorInput:", this.hexColorInput);
-        console.log("  addHexColorButton:", this.addHexColorButton);
-        console.log("  gradientTypeSelect:", this.gradientTypeSelect);
-        console.log("  linearSettingsDiv:", this.linearSettingsDiv);
-        console.log("  radialSettingsDiv:", this.radialSettingsDiv);
-        console.log("  gradientAngleNumberInput:", this.gradientAngleNumberInput);
-        console.log("  gradientAngleSliderInput:", this.gradientAngleSliderInput);
-        console.log("  radialShapeSelect:", this.radialShapeSelect);
-        console.log("  grainToggle:", this.grainToggle);
-        console.log("  grainOpacityInput:", this.grainOpacityInput);
-        console.log("  outputWidthInput:", this.outputWidthInput);
-        console.log("  outputHeightInput:", this.outputHeightInput);
-        console.log("  outputOrientationSelect:", this.outputOrientationSelect);
-        console.log("  swapDimensionsButton:", this.swapDimensionsButton);
-        console.log("  downloadButton:", this.downloadButton);
-
-        // Updated warning condition to include themeToggle
-        if (!this.themeToggle || // Added themeToggle to the check
-            !this.colorInputsContainer || !this.addColorPickerButton || !this.removeColorPickerButton ||
-            !this.hexColorInput || !this.addHexColorButton ||
-            !this.gradientTypeSelect || !this.linearSettingsDiv || !this.radialSettingsDiv ||
-            !this.gradientAngleNumberInput || !this.gradientAngleSliderInput ||
-            !this.radialShapeSelect || !this.grainToggle ||
-            !this.grainOpacityInput || !this.outputWidthInput || !this.outputHeightInput ||
-            !this.outputOrientationSelect || !this.swapDimensionsButton || !this.downloadButton) {
-            console.warn("[GradientGenerator] Warning: One or more UI control elements were not found. Some functionality may be impaired. Please check their IDs in index.html and the console logs above for details.");
         }
 
         this.init();
@@ -136,13 +112,13 @@ class GradientGenerator {
         if (this.linearSettingsDiv) this.linearSettingsDiv.style.display = 'block';
         if (this.radialSettingsDiv) this.radialSettingsDiv.style.display = 'none';
         if (this.grainOpacityInput && this.grainToggle) this.grainOpacityInput.disabled = !this.grainToggle.checked;
-        if (this.gradientAngleNumberInput && this.gradientAngleSliderInput) { // Sync initial angle values
+        if (this.gradientAngleNumberInput && this.gradientAngleSliderInput) {
             this.gradientAngleSliderInput.value = this.gradientAngleNumberInput.value;
         }
 
-
-        this.updateRemoveColorPickerButtonState();
+        this.updateButtonStates();
         this.adjustPreviewCanvasAspectRatio(); // This should trigger the first updatePreview
+
         console.log('[GradientGenerator] Initialization complete.');
     }
 
@@ -171,96 +147,201 @@ class GradientGenerator {
         });
     }
 
+    private selectColor(colorId: number) {
+        if (this.selectedColorId === colorId) {
+            this.deselectColor();
+            return;
+        }
+
+        this.deselectColor();
+
+        this.selectedColorId = colorId;
+        const selectedColorObject = this.colors.find(c => c.id === colorId);
+
+        if (selectedColorObject && selectedColorObject.domElement) {
+            selectedColorObject.domElement.classList.add('color-picker-selected');
+            if (this.selectedColorHexEditInput) {
+                this.selectedColorHexEditInput.value = selectedColorObject.value;
+            }
+            if (this.editSelectedColorFieldset) {
+                this.editSelectedColorFieldset.style.display = 'block';
+            }
+            if (this.selectedColorIdDisplay) {
+                this.selectedColorIdDisplay.textContent = `(Editing ID: ${colorId})`;
+            }
+        }
+        this.updateButtonStates();
+    }
+
+    private deselectColor() {
+        if (this.selectedColorId !== null) {
+            const previouslySelectedColor = this.colors.find(c => c.id === this.selectedColorId);
+            if (previouslySelectedColor && previouslySelectedColor.domElement) {
+                previouslySelectedColor.domElement.classList.remove('color-picker-selected');
+            }
+        }
+        this.selectedColorId = null;
+        if (this.selectedColorHexEditInput) this.selectedColorHexEditInput.value = '';
+        if (this.editSelectedColorFieldset) this.editSelectedColorFieldset.style.display = 'none';
+        if (this.selectedColorIdDisplay) this.selectedColorIdDisplay.textContent = '';
+        this.updateButtonStates();
+    }
+
     private addNewColorPicker(defaultValue: string = '#ffffff') {
-        if (!this.colorInputsContainer) return;
+        if (!this.colorInputsContainer) {
+            console.warn("[GradientGenerator] Cannot add color: colorInputsContainer is null.");
+            return;
+        }
         if (this.colors.length >= this.MAX_COLORS) {
             alert(`Maximum ${this.MAX_COLORS} colors allowed.`);
             return;
         }
 
         const colorId = this.nextColorId++;
-        const newColor: GradientColor = { id: colorId, value: defaultValue };
-        this.colors.push(newColor);
-
         const input = document.createElement('input');
         input.type = 'color';
         input.value = defaultValue;
         input.dataset.colorId = colorId.toString();
+
+        const newColor: GradientColor = { id: colorId, value: defaultValue, domElement: input };
+        this.colors.push(newColor);
+
         input.addEventListener('input', (e) => {
             const target = e.target as HTMLInputElement;
-            const id = parseInt(target.dataset.colorId!);
-            const color = this.colors.find(c => c.id === id);
+            // const id = parseInt(target.dataset.colorId!); // id is colorId from closure
+            const color = this.colors.find(c => c.id === colorId);
             if (color) {
                 color.value = target.value;
+                if (this.selectedColorId === colorId && this.selectedColorHexEditInput) {
+                    this.selectedColorHexEditInput.value = target.value;
+                }
                 this.updatePreview();
             }
         });
+
+        input.addEventListener('click', () => {
+            this.selectColor(colorId);
+        });
+
         this.colorInputsContainer.appendChild(input);
-        this.updateRemoveColorPickerButtonState();
+        this.updateButtonStates();
         this.updatePreview();
+        this.selectColor(colorId); // Auto-select newly added color
     }
 
-    private addColorByHex(hexValue: string) {
-        const hexRegex = /^#([0-9A-Fa-f]{3}){1,2}$/; // Basic hex validation
+    private addColorByHex(hexValue: string | undefined) {
+        if (!hexValue) return; // Should be caught by button listener check
+        const hexRegex = /^#([0-9A-Fa-f]{3}){1,2}$/;
         if (!hexRegex.test(hexValue)) {
-            alert("Invalid Hex Code. Please use format #RGB or #RRGGBB.");
-            if (this.hexColorInput) this.hexColorInput.value = ''; // Clear invalid input
+            alert("Invalid Hex Code for new color. Please use format #RGB or #RRGGBB.");
+            if (this.hexColorInputAdd) this.hexColorInputAdd.value = '';
             return;
         }
-        // Normalize to 6-digit hex if 3-digit is provided
         let normalizedHex = hexValue;
         if (hexValue.length === 4) { // #RGB
             normalizedHex = `#${hexValue[1]}${hexValue[1]}${hexValue[2]}${hexValue[2]}${hexValue[3]}${hexValue[3]}`;
         }
 
         this.addNewColorPicker(normalizedHex);
-        if (this.hexColorInput) this.hexColorInput.value = ''; // Clear after adding
+        if (this.hexColorInputAdd) this.hexColorInputAdd.value = ''; // Clear after adding
     }
 
+    private updateSelectedColorHex() {
+        if (this.selectedColorId === null || !this.selectedColorHexEditInput) return;
 
-    private removeLastColorPicker() {
-        if (!this.colorInputsContainer) return;
-        if (this.colors.length > 2) {
-            this.colors.pop();
-            if (this.colorInputsContainer.lastChild) {
-                this.colorInputsContainer.removeChild(this.colorInputsContainer.lastChild);
+        const newHexValue = this.selectedColorHexEditInput.value;
+        const hexRegex = /^#([0-9A-Fa-f]{3}){1,2}$/;
+        if (!hexRegex.test(newHexValue)) {
+            alert("Invalid Hex Code for selected color. Please use format #RGB or #RRGGBB.");
+            return;
+        }
+        let normalizedHex = newHexValue;
+        if (newHexValue.length === 4) { // #RGB
+            normalizedHex = `#${newHexValue[1]}${newHexValue[1]}${newHexValue[2]}${newHexValue[2]}${newHexValue[3]}${newHexValue[3]}`;
+        }
+
+        const colorToUpdate = this.colors.find(c => c.id === this.selectedColorId);
+        if (colorToUpdate) {
+            colorToUpdate.value = normalizedHex;
+            if (colorToUpdate.domElement) {
+                colorToUpdate.domElement.value = normalizedHex;
             }
-            this.updateRemoveColorPickerButtonState();
             this.updatePreview();
         }
     }
 
-    private updateRemoveColorPickerButtonState() {
-        if (!this.removeColorPickerButton || !this.addColorPickerButton) return;
-        this.removeColorPickerButton.disabled = this.colors.length <= 2;
-        this.addColorPickerButton.disabled = this.colors.length >= this.MAX_COLORS;
+    private removeSelectedColor() {
+        if (this.selectedColorId === null) {
+            alert("No color selected to remove.");
+            return;
+        }
+        if (this.colors.length <= this.MIN_COLORS) {
+            alert(`Minimum ${this.MIN_COLORS} colors required.`);
+            return;
+        }
+
+        const indexToRemove = this.colors.findIndex(c => c.id === this.selectedColorId);
+        if (indexToRemove > -1) {
+            const colorToRemove = this.colors[indexToRemove];
+            if (colorToRemove.domElement && colorToRemove.domElement.parentElement) {
+                colorToRemove.domElement.parentElement.removeChild(colorToRemove.domElement);
+            }
+            this.colors.splice(indexToRemove, 1);
+            this.deselectColor();
+            this.updatePreview();
+        }
+    }
+
+    private updateButtonStates() {
+        if (this.addColorPickerButton) {
+            this.addColorPickerButton.disabled = this.colors.length >= this.MAX_COLORS;
+        }
+        if (this.removeSelectedColorButton) {
+            this.removeSelectedColorButton.disabled = this.selectedColorId === null || this.colors.length <= this.MIN_COLORS;
+        }
+        if (this.updateSelectedColorButton) {
+            this.updateSelectedColorButton.disabled = this.selectedColorId === null;
+        }
+        // Add hex button for new colors doesn't depend on selection state
+        if (this.addHexColorButton) {
+            this.addHexColorButton.disabled = this.colors.length >= this.MAX_COLORS;
+        }
     }
 
     private attachEventListeners() {
         console.log('[GradientGenerator] Attaching event listeners...');
         if (this.addColorPickerButton) this.addColorPickerButton.addEventListener('click', () => this.addNewColorPicker());
-        if (this.removeColorPickerButton) this.removeColorPickerButton.addEventListener('click', () => this.removeLastColorPicker());
-        if (this.addHexColorButton && this.hexColorInput) {
-            this.addHexColorButton.addEventListener('click', () => this.addColorByHex(this.hexColorInput!.value));
+        if (this.removeSelectedColorButton) this.removeSelectedColorButton.addEventListener('click', () => this.removeSelectedColor());
+
+        if (this.addHexColorButton && this.hexColorInputAdd) {
+            this.addHexColorButton.addEventListener('click', () => {
+                if (this.hexColorInputAdd) this.addColorByHex(this.hexColorInputAdd.value);
+            });
+        }
+        if (this.updateSelectedColorButton) { // No need to check selectedColorHexEditInput here, method does
+            this.updateSelectedColorButton.addEventListener('click', () => this.updateSelectedColorHex());
         }
 
-
-        // Angle slider and number input synchronization
         if (this.gradientAngleNumberInput && this.gradientAngleSliderInput) {
             this.gradientAngleNumberInput.addEventListener('input', () => {
-                this.gradientAngleSliderInput!.value = this.gradientAngleNumberInput!.value;
+                if (this.gradientAngleSliderInput) this.gradientAngleSliderInput.value = this.gradientAngleNumberInput!.value;
                 this.updatePreview();
             });
             this.gradientAngleSliderInput.addEventListener('input', () => {
-                this.gradientAngleNumberInput!.value = this.gradientAngleSliderInput!.value;
+                if (this.gradientAngleNumberInput) this.gradientAngleNumberInput.value = this.gradientAngleSliderInput!.value;
                 this.updatePreview();
             });
         }
 
         const elementsToAttachListeners: Array<HTMLElement | null> = [
-            this.gradientTypeSelect, /* Angle inputs handled above */
-            this.radialShapeSelect, this.grainToggle, this.grainOpacityInput,
-            this.outputWidthInput, this.outputHeightInput, this.outputOrientationSelect
+            this.gradientTypeSelect,
+            // Angle inputs handled above
+            this.radialShapeSelect,
+            this.grainToggle,
+            this.grainOpacityInput,
+            this.outputWidthInput,
+            this.outputHeightInput,
+            this.outputOrientationSelect
         ];
 
         elementsToAttachListeners.forEach(el => {
@@ -277,7 +358,6 @@ class GradientGenerator {
 
     private handleControlChange(elementId: string | undefined) {
         if (!elementId) return;
-        // console.log(`Control changed: ${elementId}`);
 
         if (elementId === 'grain-toggle' && this.grainToggle && this.grainOpacityInput) {
             this.grainOpacityInput.disabled = !this.grainToggle.checked;
@@ -295,7 +375,6 @@ class GradientGenerator {
                 this.adjustPreviewCanvasAspectRatio();
             }
         } else {
-            // For other controls (like grain opacity, radial shape, gradient type change)
             this.updatePreview();
         }
     }
@@ -334,7 +413,10 @@ class GradientGenerator {
     private adjustPreviewCanvasAspectRatio() {
         if (!this.previewCanvas || !this.outputWidthInput || !this.outputHeightInput) return;
         const previewArea = document.getElementById('preview-area');
-        if (!previewArea) return;
+        if (!previewArea) {
+            console.warn("[GradientGenerator] 'preview-area' element not found for aspect ratio adjustment.");
+            return;
+        }
 
         const widthInput = parseInt(this.outputWidthInput.value) || 1920;
         const heightInput = parseInt(this.outputHeightInput.value) || 1080;
@@ -355,14 +437,14 @@ class GradientGenerator {
     }
 
     private drawGradient(ctx: CanvasRenderingContext2D, width: number, height: number) {
-        if (!this.gradientTypeSelect || !this.gradientAngleNumberInput || !this.radialShapeSelect) return; // Use number input as source of truth for angle
+        if (!this.gradientTypeSelect || !this.gradientAngleNumberInput || !this.radialShapeSelect) return;
         const gradientType = this.gradientTypeSelect.value;
         const activeColors = this.colors.map(c => c.value);
         if (activeColors.length < 2) return;
 
         let gradient: CanvasGradient;
         if (gradientType === 'linear') {
-            const angleDeg = parseFloat(this.gradientAngleNumberInput.value); // Read from number input
+            const angleDeg = parseFloat(this.gradientAngleNumberInput.value);
             const angleRad = (angleDeg - 90) * (Math.PI / 180);
             const L = Math.abs(width * Math.sin(angleRad)) + Math.abs(height * Math.cos(angleRad));
             const x0 = (width - L * Math.cos(angleRad)) / 2;
@@ -407,7 +489,9 @@ class GradientGenerator {
     }
 
     private updatePreview() {
-        if (!this.previewCanvas || !this.previewCtx) return;
+        if (!this.previewCanvas || !this.previewCtx) {
+            return;
+        }
 
         const currentDisplayWidth = this.previewCanvas.clientWidth;
         const currentDisplayHeight = this.previewCanvas.clientHeight;
@@ -471,3 +555,5 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('[DOMContentLoaded] DOM fully loaded and parsed. Initializing GradientGenerator...');
     new GradientGenerator();
 });
+
+console.log('[Script] script.ts (soon to be script.js) has been parsed by the browser.');
