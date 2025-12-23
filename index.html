@@ -1,109 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gradient Background Generator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <div class="container">
-        <div class="header-controls">
-            <h1>Gradient Background Generator</h1>
-            <div class="theme-switcher">
-                <label for="theme-toggle">Dark Mode:</label>
-                <input type="checkbox" id="theme-toggle" title="Toggle Dark Mode">
-            </div>
-        </div>
+    <div id="app">
+        <div class="controls-panel">
+            <header>
+                <h1>Gradient Background Generator</h1>
+            </header>
 
-        <div class="main-content">
-            <div class="controls">
-                <fieldset>
-                    <legend>Colors</legend>
-                    <div id="color-inputs" class="color-inputs-container"> 
-                        <!-- Color pickers will be added by JS -->
-                    </div>
-                    <button id="add-color-picker">Add Color Picker</button>
-                    <button id="remove-selected-color" disabled>Remove Selected Color</button>
-
-                    <div class="add-hex-group">
-                        <input type="text" id="hex-color-input-add" placeholder="#RRGGBB (New Color)">
-                        <button id="add-hex-color-button">Add by Hex</button>
-                    </div>
-                </fieldset>
-
-                <fieldset id="edit-selected-color-fieldset" style="display: none;">
-                    <legend>Edit Selected Color</legend>
-                    <label for="selected-color-hex-edit">Hex Value:</label>
-                    <input type="text" id="selected-color-hex-edit" placeholder="#RRGGBB">
-                    <button id="update-selected-color-button">Update Color</button>
-                    <span id="selected-color-id-display" style="font-size: 0.8em; margin-left: 10px;"></span>
-                </fieldset>
-
-                <fieldset>
-                    <legend>Gradient Settings</legend>
-                    <label for="gradient-type">Type:</label>
-                    <select id="gradient-type">
-                        <option value="linear">Linear</option>
-                        <option value="radial">Radial</option>
-                        <option value="blotchy">Blotchy (Experimental)</option> 
-                    </select>
-                    <div id="linear-settings"> 
-                        <label for="gradient-angle-number">Angle (degrees):</label>
-                        <input type="number" id="gradient-angle-number" value="90" min="0" max="360">
-                        <input type="range" id="gradient-angle-slider" value="90" min="0" max="360" step="1"
-                            title="Adjust Angle">
-                    </div>
-                    <div id="radial-settings" style="display:none;">
-                        <label for="radial-shape">Shape:</label>
-                        <select id="radial-shape">
-                            <option value="ellipse">Ellipse</option>
-                            <option value="circle">Circle</option>
-                        </select>
-                    </div>
-                    <div id="blotchy-settings" style="display:none;"> 
-                        <label for="blotchiness-slider">Blotchiness (0-100):</label>
-                        <input type="range" id="blotchiness-slider" value="20" min="0" max="100" step="1">
-                    </div>
-                </fieldset>
-
-                <fieldset>
-                    <legend>Effects</legend>
-                    <label for="grain-toggle">Enable Grain:</label>
-                    <input type="checkbox" id="grain-toggle">
-                    <label for="grain-opacity">Grain Opacity (0-1):</label>
-                    <input type="range" id="grain-opacity" min="0" max="1" step="0.05" value="0.15" disabled>
-                </fieldset>
-
-                <fieldset>
-                    <legend>Output</legend>
-                    <label for="output-width">Width (px):</label>
-                    <input type="number" id="output-width" value="1920" min="100">
-                    <label for="output-height">Height (px):</label>
-                    <input type="number" id="output-height" value="1080" min="100">
-                    <label for="output-orientation">Orientation:</label>
-                    <select id="output-orientation">
-                        <option value="landscape">Landscape</option>
-                        <option value="portrait">Portrait</option>
-                    </select>
-                    <button id="swap-dimensions">Swap Dimensions</button>
-                </fieldset>
-            </div>
-
-            <div class="preview-section">
-                <h2>Preview</h2>
-                <div id="preview-area">
-                    <canvas id="preview-canvas"></canvas>
+            <section class="control-group">
+                <div class="section-header">
+                    <h3>Colors</h3>
+                    <button id="add-color" class="btn-icon" title="Add Color">+</button>
                 </div>
-            </div>
+                <div id="color-list" class="color-list"></div>
+            </section>
+
+            <section class="control-group">
+                <div class="section-header">
+                    <h3 style="margin-right: 1rem;">Playback</h3>
+                    <button id="toggle-pause" class="btn-secondary">Pause</button>
+                </div>
+                <div class="control-item">
+                    <label>Timeline</label>
+                    <input type="range" id="time-slider" min="0" max="100" step="0.1" value="0">
+                </div>
+            </section>
+
+            <section class="control-group">
+                <h3>Effects</h3>
+                <div class="control-item">
+                    <label>Grain Intensity</label>
+                    <input type="range" id="grain-intensity" min="0" max="1" step="0.01" value="0.15">
+                </div>
+                <div class="control-item">
+                    <label>Blob Smoothness</label>
+                    <input type="range" id="blob-smoothness" min="0.1" max="2" step="0.1" value="1.0">
+                </div>
+                <div class="control-item">
+                    <label>Noise Scale</label>
+                    <input type="range" id="noise-scale" min="0.1" max="5" step="0.1" value="1.5">
+                </div>
+            </section>
+
+            <section class="control-group">
+                <h3>Resolution</h3>
+                <div class="resolution-presets">
+                    <button class="res-preset" data-w="1920" data-h="1080">16:9 (HD)</button>
+                    <button class="res-preset" data-w="1080" data-h="1920">9:16 (Mobile)</button>
+                    <button class="res-preset" data-w="2160" data-h="3840">4K Vertical</button>
+                    <button class="res-preset" data-w="1080" data-h="1080">1:1 (Square)</button>
+                </div>
+                <div class="dimension-inputs">
+                    <input type="number" id="canvas-width" value="1920" placeholder="Width">
+                    <span>×</span>
+                    <input type="number" id="canvas-height" value="1080" placeholder="Height">
+                </div>
+            </section>
+
+            <section class="presets">
+                <h3>Presets</h3>
+                <div id="preset-list" class="preset-grid"></div>
+            </section>
+
+            <footer>
+                <button id="download-png" class="btn-primary">Download PNG</button>
+            </footer>
         </div>
 
-        <button id="download-btn">Download Background</button>
+        <main class="preview-container">
+            <div class="canvas-wrapper">
+                <canvas id="gl-canvas"></canvas>
+            </div>
+        </main>
     </div>
-
-    <script src="script.js"></script>
+    <script type="module" src="./src/main.ts"></script>
 </body>
-
 </html>
