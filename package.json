@@ -4,8 +4,7 @@
   "main": "index.html",
   "scripts": {
     "dev": "bun --hot dev.ts",
-    "build": "bun build ./src/main.ts --outdir ./dist --minify --target browser && cp index.html styles.css src/shaders/* dist/",
-    "preview": "bun --hot dist/index.html"
+    "build": "mkdir -p dist && bun build ./src/main.ts --outfile ./dist/main.js --minify && cp index.html styles.css ./dist/ && mkdir -p ./dist/src && cp -r src/shaders ./dist/src/"
   },
   "keywords": [],
   "author": "",
