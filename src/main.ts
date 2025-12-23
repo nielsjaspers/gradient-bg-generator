@@ -122,6 +122,14 @@ class App {
         heightInput.addEventListener('change', updateDimensions);
         updateDimensions();
 
+        // Flip dimensions
+        document.getElementById('flip-dimensions')!.addEventListener('click', () => {
+            const w = widthInput.value;
+            widthInput.value = heightInput.value;
+            heightInput.value = w;
+            updateDimensions();
+        });
+
         // Resolution Presets
         document.querySelectorAll('.res-preset').forEach(btn => {
             btn.addEventListener('click', () => {
